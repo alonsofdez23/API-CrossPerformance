@@ -91,4 +91,15 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    public function testToken()
+    {
+        $user = Auth::user();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Token de ' . $user->name,
+            'token' => 'token OK'
+        ]);
+    }
 }
