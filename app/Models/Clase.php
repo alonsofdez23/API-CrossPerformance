@@ -13,7 +13,7 @@ class Clase extends Model
 
     protected $casts = [
         'fecha_hora' => 'datetime',
-    ]
+    ];
 
     protected $fillable = [
         'monitor_id',
