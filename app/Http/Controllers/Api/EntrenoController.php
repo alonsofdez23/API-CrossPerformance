@@ -14,7 +14,7 @@ class EntrenoController extends Controller
      */
     public function index()
     {
-        $entrenos = Entreno::select('denominacion', 'entreno')->get();
+        $entrenos = Entreno::select('denominacion', 'entreno')->get()->sortBy('id');
 
         return response()->json($entrenos, 200);
     }
