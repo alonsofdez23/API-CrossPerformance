@@ -46,4 +46,24 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * The clases that belong to the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function clases()
+    {
+        return $this->belongsToMany(Clase::class);
+    }
+
+    /**
+     * Get all of the imparte for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function imparte()
+    {
+        return $this->hasMany(Clase::class);
+    }
 }
