@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\EntrenoController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,12 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::get('/auth/token', [UserController::class, 'testToken']);
     Route::get('/auth/logout', [UserController::class, 'logout']);
 
+    // Entrenos
+    Route::get('/entrenos', [EntrenoController::class, 'index']);
+    Route::get('/entrenos/{entreno}', [EntrenoController::class, 'show']);
+    Route::post('/entrenos', [EntrenoController::class, 'store']);
+    Route::put('/entrenos/{entreno}', [EntrenoController::class, 'update']);
+    Route::delete('/entrenos/{entreno}', [EntrenoController::class, 'destroy']);
 });
 
 // Revoca tokens del usuario
