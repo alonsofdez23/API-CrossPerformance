@@ -11,10 +11,14 @@ Route::get('/user', function (Request $request) {
 Route::post('/auth/register', [UserController::class, 'createUser']);
 Route::post('/auth/login', [UserController::class, 'loginUser']);
 
-Route::get('/token', [UserController::class, 'testToken'])->middleware('auth:sanctum');
+Route::group(['middleware' => ["auth:sanctum"]], function () {
+    Route::get('/auth/token', [UserController::class, 'testToken']);
+    Route::get('/auth/logout', [UserController::class, 'logout']);
+
+});
 
 // Revoca tokens del usuario
-Route::post('/auth/logout', function (Request $request) {
+Route::post('/auth/logoutt', function (Request $request) {
     $user = $request->auth();
 
     // Revoca todo los tokens...

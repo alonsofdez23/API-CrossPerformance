@@ -92,6 +92,17 @@ class UserController extends Controller
         }
     }
 
+    public function logout()
+    {
+        $user = Auth::user();
+        $user->tokens()->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Tokens de ' . $user->name . ' revocados correctamente'
+        ], 200);
+    }
+
     public function testToken()
     {
         $user = Auth::user();
