@@ -30,6 +30,14 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::post('/clases', [ClaseController::class, 'store']);
     Route::put('/clases/{clase}', [ClaseController::class, 'update']);
     Route::delete('/clases/{clase}', [ClaseController::class, 'destroy']);
+
+    //Atletas
+    Route::post('clases/join/{clase}', [ClaseController::class, 'join']);
+    Route::post('clases/leave/{clase}', [ClaseController::class, 'leave']);
+
+    // Entrenos en clases
+    Route::post('clases/add/{clase}', [ClaseController::class, 'addEntrenoUpdate']);
+    Route::post('clases/delete/{clase}', [ClaseController::class, 'deleteEntrenoUpdate']);
 });
 
 // Revoca tokens del usuario

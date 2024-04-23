@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Clase;
+use App\Models\Entreno;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ClaseController extends Controller
@@ -124,6 +126,71 @@ class ClaseController extends Controller
         return response()->json([
             'status' => false,
             'message' => "Clase borrada correctamente"
+        ], 200);
+    }
+
+    // Atletas
+    public function join(Clase $clase)
+    {
+        $clase->atletas()->attach(Auth::id());
+
+        $clase->vacantes = $clase->vacantes - 1;
+        $clase->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => "Inscrito correctamente a la clase"
+        ], 200);
+    }
+
+    public function leave(Clase $clase)
+    {
+        $clase->atletas()->detach(Auth::id());
+
+        $clase->vacantes = $clase->vacantes + 1;
+        $clase->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => "Borrado correctamente de la clase"
+        ], 200);
+    }
+
+    // Entrenos en clases
+    public function addEntrenoUpdate(Request $request, Clase $clase)
+    {
+        $clase->entreno_id = $request->entreno_id;
+        $clase->save();
+
+        $entreno = Entreno::find($request->entreno_id);
+
+        return response()->json([
+            'status' => true,
+            'message' => "Entreno $entreno->denominacion asignado a la clase"
+        ], 200);
+    }
+
+    public function deleteEntrenoUpdate(Clase $clase)
+    {
+        if (!$clase->entreno_id) {
+            return response()->json([
+                'status' => false,
+                'message' => "Clase sin entreno asignado",
+            ], 401);
+        } elseif ($clase === null) {
+            return response()->json([
+                'status' => false,
+                'message' => "La clase no existe",
+            ], 401);
+
+        }
+
+        $clase->entreno_id = null;
+        $clase->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => "Entreno borrado de la clase"
         ], 200);
     }
 }
