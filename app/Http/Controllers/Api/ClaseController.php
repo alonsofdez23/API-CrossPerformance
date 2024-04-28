@@ -16,9 +16,11 @@ class ClaseController extends Controller
      */
     public function index()
     {
-        $clases = Clase::select('monitor_id', 'entreno_id', 'fecha_hora', 'vacantes')
-            ->get()
-            ->sortBy('fecha_hora');
+        $clases = Clase::with('atletas')->get();
+
+        // $clases = Clase::select('monitor_id', 'entreno_id', 'fecha_hora', 'vacantes')
+        //     ->get()
+        //     ->sortBy('fecha_hora');
 
         return response()->json($clases, 200);
     }

@@ -113,4 +113,14 @@ class UserController extends Controller
             'token' => 'token OK'
         ]);
     }
+
+    public function user()
+    {
+        $user = Auth::user();
+
+        return response()->json([
+            'name' => $user->name,
+            'email' => $user->email
+        ]);
+    }
 }
