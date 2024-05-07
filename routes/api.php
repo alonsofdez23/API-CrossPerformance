@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ClaseController;
 use App\Http\Controllers\Api\EntrenoController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,27 +19,44 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::get('/auth/token', [UserController::class, 'testToken']);
     Route::get('/auth/logout', [UserController::class, 'logout']);
 
+    // Users
+    Route::get('/users', [UserController::class, 'index']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+
     // Entrenos
     Route::get('/entrenos', [EntrenoController::class, 'index']);
     Route::get('/entrenos/{entreno}', [EntrenoController::class, 'show']);
-    Route::post('/entrenos', [EntrenoController::class, 'store']);
-    Route::put('/entrenos/{entreno}', [EntrenoController::class, 'update']);
-    Route::delete('/entrenos/{entreno}', [EntrenoController::class, 'destroy']);
 
     // Clases
     Route::get('/clases', [ClaseController::class, 'index']);
     Route::get('/clases/{clase}', [ClaseController::class, 'show']);
-    Route::post('/clases', [ClaseController::class, 'store']);
-    Route::put('/clases/{clase}', [ClaseController::class, 'update']);
-    Route::delete('/clases/{clase}', [ClaseController::class, 'destroy']);
 
     //Atletas
     Route::post('clases/join/{clase}', [ClaseController::class, 'join']);
     Route::post('clases/leave/{clase}', [ClaseController::class, 'leave']);
 
-    // Entrenos en clases
-    Route::post('clases/add/{clase}', [ClaseController::class, 'addEntrenoUpdate']);
-    Route::post('clases/delete/{clase}', [ClaseController::class, 'deleteEntrenoUpdate']);
+    Route::group(['middleware' => ['role:admin|coach']], function() {
+        Route::get('/users/role/{role}', [UserController::class, 'usersForRole']);
+        Route::delete('/user/{user}', [UserController::class, 'destroy']);
+        // Roles
+        Route::post('/user/{user}/role/{role}', [RoleController::class, 'assignRole']);
+        Route::post('/user/{user}/revokerole', [RoleController::class, 'revokeRole']);
+
+        // Entrenos
+        Route::post('/entrenos', [EntrenoController::class, 'store']);
+        Route::put('/entrenos/{entreno}', [EntrenoController::class, 'update']);
+        Route::delete('/entrenos/{entreno}', [EntrenoController::class, 'destroy']);
+
+        // Clases
+        Route::post('/clases', [ClaseController::class, 'store']);
+        Route::put('/clases/{clase}', [ClaseController::class, 'update']);
+        Route::delete('/clases/{clase}', [ClaseController::class, 'destroy']);
+
+        // Entrenos en clases
+        Route::post('clases/add/{clase}', [ClaseController::class, 'addEntrenoUpdate']);
+        Route::post('clases/delete/{clase}', [ClaseController::class, 'deleteEntrenoUpdate']);
+    });
+
 });
 
 // Revoca tokens del usuario
