@@ -36,6 +36,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::post('clases/leave/{clase}', [ClaseController::class, 'leave']);
 
     Route::group(['middleware' => ['role:admin|coach']], function() {
+        // Users
         Route::get('/users/role/{role}', [UserController::class, 'usersForRole']);
         Route::delete('/user/{user}', [UserController::class, 'destroy']);
         // Roles
