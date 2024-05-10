@@ -15,9 +15,28 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::with('roles')->get();
 
-        return response()->json($users, 200);
+        $responseData = [];
+
+        foreach ($users as $user) {
+            $userRole = $user->roles->pluck('name')->toArray();
+
+            if (empty($userRole)) {
+                $userRole = null;
+            } else {
+                $userRole = $userRole[0];
+            }
+
+            $responseData[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $userRole,
+            ];
+        }
+
+        return response()->json($responseData, 200);
     }
 
     public function usersForRole(Role $role)
@@ -138,6 +157,7 @@ class UserController extends Controller
         $user = Auth::user();
 
         return response()->json([
+            'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email
         ]);
