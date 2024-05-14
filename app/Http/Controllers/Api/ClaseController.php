@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Clase;
 use App\Models\Entreno;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Validator;
 
 class ClaseController extends Controller
@@ -21,6 +23,17 @@ class ClaseController extends Controller
         // $clases = Clase::select('monitor_id', 'entreno_id', 'fecha_hora', 'vacantes')
         //     ->get()
         //     ->sortBy('fecha_hora');
+
+        return response()->json($clases, 200);
+    }
+
+    public function indexDate($date)
+    {
+        $dateFormated = Carbon::parse($date);
+
+        $clases = Clase::whereDate('fecha_hora', '=', $dateFormated)
+            ->with('atletas')
+            ->get();
 
         return response()->json($clases, 200);
     }

@@ -29,6 +29,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
 
     // Clases
     Route::get('/clases', [ClaseController::class, 'index']);
+    Route::get('/clases/{date}', [ClaseController::class, 'indexDate']);
     Route::get('/clases/{clase}', [ClaseController::class, 'show']);
 
     //Atletas
