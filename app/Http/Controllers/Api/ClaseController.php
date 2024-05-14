@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Clase;
 use App\Models\Entreno;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -18,13 +19,17 @@ class ClaseController extends Controller
      */
     public function index()
     {
-        $clases = Clase::with('atletas')->get();
+        $clases = Clase::with('atletas')
+        ->get()
+        ->sortBy('fecha_hora');
 
         // $clases = Clase::select('monitor_id', 'entreno_id', 'fecha_hora', 'vacantes')
         //     ->get()
         //     ->sortBy('fecha_hora');
 
         return response()->json($clases, 200);
+
+
     }
 
     public function indexDate($date)
@@ -33,9 +38,23 @@ class ClaseController extends Controller
 
         $clases = Clase::whereDate('fecha_hora', '=', $dateFormated)
             ->with('atletas')
-            ->get();
+            ->get()
+            ->sortBy('fecha_hora');
 
-        return response()->json($clases, 200);
+        $responseData = [];
+
+        foreach ($clases as $clase) {
+            $responseData[] = [
+                'id' => $clase->id,
+                'monitor' => User::find($clase->monitor_id),
+                'entreno' => Entreno::find($clase->entreno_id),
+                'fecha_hora' => $clase->fecha_hora,
+                'vacantes' => $clase->vacantes,
+                'atletas' => $clase->atletas
+            ];
+        }
+
+        return response()->json($responseData, 200);
     }
 
     /**
