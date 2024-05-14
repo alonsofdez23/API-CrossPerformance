@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 use Throwable;
@@ -28,11 +29,20 @@ class UserController extends Controller
                 $userRole = $userRole[0];
             }
 
+            if (!$user->profile_photo_url) {
+                $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
+                    return mb_substr($segment, 0, 1);
+                })->join(' '));
+
+                $photoApi = 'https://ui-avatars.com/api/?name='.urlencode($name);
+            }
+
             $responseData[] = [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $userRole,
+                'profile_photo_url' => $user->profile_photo_url ?? $photoApi
             ];
         }
 
@@ -49,7 +59,33 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return response()->json($user, 200);
+        $responseData = [];
+
+        $userRole = $user->roles->pluck('name')->toArray();
+
+            if (empty($userRole)) {
+                $userRole = null;
+            } else {
+                $userRole = $userRole[0];
+            }
+
+        if (!$user->profile_photo_url) {
+            $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
+                return mb_substr($segment, 0, 1);
+            })->join(' '));
+
+            $photoApi = 'https://ui-avatars.com/api/?name='.urlencode($name);
+        }
+
+        $responseData[] = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $userRole,
+            'profile_photo_url' => $user->profile_photo_url ?? $photoApi
+        ];
+
+        return response()->json($responseData, 200);
     }
 
     public function createUser(Request $request)
@@ -61,7 +97,8 @@ class UserController extends Controller
                 'name' => 'required',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required',
-                'role' => 'exists:roles,name'
+                'role' => 'exists:roles,name',
+                'profile_photo_url' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
             if ($validateUser->fails()) {
@@ -72,10 +109,19 @@ class UserController extends Controller
                 ], 401);
             }
 
+            if ($request->hasFile('profile_photo_url')) {
+                $file = $request->file('profile_photo_url');
+
+                $routeImage = Storage::disk('s3')->put('users', $file);
+
+                $urlImage = Storage::disk('s3')->url($routeImage);
+            }
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password)
+                'password' => Hash::make($request->password),
+                'profile_photo_url' => $urlImage
             ]);
 
             $user->assignRole($request->role);
