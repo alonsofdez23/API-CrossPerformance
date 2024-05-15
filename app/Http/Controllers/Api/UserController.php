@@ -204,6 +204,7 @@ class UserController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->roles->first()->name,
+            'profile_photo_url' => $user->profile_photo_url,
         ]);
     }
 
@@ -214,7 +215,9 @@ class UserController extends Controller
         [
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'required'
+            'password' => 'required',
+            'role' => 'exists:roles,name',
+            'profile_photo_url' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validateUser->fails()) {
@@ -225,11 +228,29 @@ class UserController extends Controller
             ], 401);
         }
 
+        if ($request->hasFile('profile_photo_url')) {
+            $file = $request->file('profile_photo_url');
+
+            $routeImage = Storage::disk('s3')->put('users', $file);
+
+            $urlImage = Storage::disk('s3')->url($routeImage);
+
+            if ($user->profile_photo_url) {
+                $path = parse_url($user->profile_photo_url);
+                $filename = basename($path['path']);
+
+                Storage::disk('s3')->delete('users/' . $filename);
+            }
+        }
+
         $user->fill([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'profile_photo_url' => $urlImage
         ]);
+
         $user->save();
 
         return response()->json([
@@ -240,6 +261,13 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->profile_photo_url) {
+            $path = parse_url($user->profile_photo_url);
+            $filename = basename($path['path']);
+
+            Storage::disk('s3')->delete('users/' . $filename);
+        }
+
         $user->delete();
 
         return response()->json([
