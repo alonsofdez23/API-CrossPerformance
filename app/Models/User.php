@@ -48,6 +48,23 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::retrieved(function($user) {
+            if (!$user->profile_photo_url) {
+                $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
+                    return mb_substr($segment, 0, 1);
+                })->join(' '));
+
+                $user->profile_photo_url = 'https://ui-avatars.com/api/?name='.urlencode($name);
+            } else {
+                $user->profile_photo_url;
+            }
+        });
+    }
+
     /**
      * The clases that belong to the User
      *

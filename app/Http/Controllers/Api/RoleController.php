@@ -12,7 +12,7 @@ class RoleController extends Controller
 {
     public function assignRole(User $user, Role $role)
     {
-        $user->assignRole($role->name);
+        $user->syncRoles($role->name);
 
         return response()->json([
             'status' => true,

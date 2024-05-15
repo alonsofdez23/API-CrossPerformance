@@ -69,20 +69,12 @@ class UserController extends Controller
                 $userRole = $userRole[0];
             }
 
-        if (!$user->profile_photo_url) {
-            $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
-                return mb_substr($segment, 0, 1);
-            })->join(' '));
-
-            $photoApi = 'https://ui-avatars.com/api/?name='.urlencode($name);
-        }
-
         $responseData[] = [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'role' => $userRole,
-            'profile_photo_url' => $user->profile_photo_url ?? $photoApi
+            'profile_photo_url' => $user->profile_photo_url
         ];
 
         return response()->json($responseData, 200);
