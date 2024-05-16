@@ -113,10 +113,12 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'profile_photo_url' => $urlImage
+                'profile_photo_url' => $urlImage ?? null,
             ]);
 
-            $user->assignRole($request->role);
+            if ($request->role) {
+                $user->assignRole($request->role);
+            }
 
             return response()->json([
                 'status' => true,
@@ -203,7 +205,7 @@ class UserController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $user->roles->first()->name,
+            'role' => $user->roles->first()->name ?? null,
             'profile_photo_url' => $user->profile_photo_url,
         ]);
     }
@@ -248,7 +250,7 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            'profile_photo_url' => $urlImage
+            'profile_photo_url' => $urlImage ?? null,
         ]);
 
         $user->save();
