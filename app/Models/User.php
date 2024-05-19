@@ -58,7 +58,7 @@ class User extends Authenticatable
                     return mb_substr($segment, 0, 1);
                 })->join(' '));
 
-                $user->profile_photo_url = 'https://ui-avatars.com/api/?name='.urlencode($name);
+                $user->profile_photo_url = 'https://ui-avatars.com/api/?name='.urlencode($name).'&size=512';
             } else {
                 $user->profile_photo_url;
             }
