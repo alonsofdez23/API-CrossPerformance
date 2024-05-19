@@ -212,6 +212,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        //dd($request->profile_photo_url);
         // Validated
         $validateUser = Validator::make($request->all(),
         [
@@ -219,7 +220,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'required',
             'role' => 'exists:roles,name',
-            'profile_photo_url' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+            'profile_photo_url' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validateUser->fails()) {

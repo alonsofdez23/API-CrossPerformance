@@ -166,6 +166,25 @@ class ClaseController extends Controller
     // Atletas
     public function join(Clase $clase)
     {
+        $user = Auth::user();
+
+        if (!$clase->atletas()->where('id', $user->id)->exists()) {
+            $clase->atletas()->attach($user->id);
+
+            $clase->vacantes = $clase->vacantes - 1;
+            $clase->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Atleta $user->name inscrito en la clase $clase->id a las $clase->fecha_hora"
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => "Atleta $user->name ya está inscrito en la clase $clase->id a las $clase->fecha_hora"
+        ], 401);
+
         $clase->atletas()->attach(Auth::id());
 
         $clase->vacantes = $clase->vacantes - 1;
@@ -179,15 +198,64 @@ class ClaseController extends Controller
 
     public function leave(Clase $clase)
     {
-        $clase->atletas()->detach(Auth::id());
+        $user = Auth::user();
 
-        $clase->vacantes = $clase->vacantes + 1;
-        $clase->save();
+        if ($clase->atletas()->where('id', $user->id)->exists()) {
+            $clase->atletas()->detach($user->id);
+
+            $clase->vacantes = $clase->vacantes + 1;
+            $clase->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Atleta $user->name borrado en la clase $clase->id a las $clase->fecha_hora"
+            ], 200);
+        }
 
         return response()->json([
-            'status' => true,
-            'message' => "Borrado correctamente de la clase"
-        ], 200);
+            'status' => false,
+            'message' => "Atleta $user->name no está inscrito en la clase $clase->id a las $clase->fecha_hora"
+        ], 401);
+    }
+
+    public function joinAtleta(User $atleta, Clase $clase)
+    {
+        if (!$clase->atletas()->where('id', $atleta->id)->exists()) {
+            $clase->atletas()->attach($atleta->id);
+
+            $clase->vacantes = $clase->vacantes - 1;
+            $clase->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Atleta $atleta->name inscrito en la clase $clase->id a las $clase->fecha_hora"
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => "Atleta $atleta->name ya está inscrito en la clase $clase->id a las $clase->fecha_hora"
+        ], 401);
+    }
+
+    public function leaveAtleta(User $atleta, Clase $clase)
+    {
+        if ($clase->atletas()->where('id', $atleta->id)->exists()) {
+            $clase->atletas()->detach($atleta->id);
+
+            $clase->vacantes = $clase->vacantes + 1;
+            $clase->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Atleta $atleta->name borrado en la clase $clase->id a las $clase->fecha_hora"
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => "Atleta $atleta->name no está inscrito en la clase $clase->id a las $clase->fecha_hora"
+        ], 401);
     }
 
     // Entrenos en clases

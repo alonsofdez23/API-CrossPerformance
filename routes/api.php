@@ -33,9 +33,11 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::get('/clases/date/{date}', [ClaseController::class, 'indexDate']);
     Route::get('/clases/{clase}', [ClaseController::class, 'show']);
 
-    //Atletas
+    //Atletas a clases
     Route::post('clases/join/{clase}', [ClaseController::class, 'join']);
     Route::post('clases/leave/{clase}', [ClaseController::class, 'leave']);
+    Route::post('clases/joinatleta/{atleta}/clase/{clase}', [ClaseController::class, 'joinAtleta']);
+    Route::post('clases/leaveatleta/{atleta}/clase/{clase}', [ClaseController::class, 'leaveAtleta']);
 
     Route::group(['middleware' => ['role:admin|coach']], function() {
         // Users
