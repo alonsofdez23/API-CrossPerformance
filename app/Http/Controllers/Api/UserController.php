@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\File;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -29,20 +32,12 @@ class UserController extends Controller
                 $userRole = $userRole[0];
             }
 
-            if (!$user->profile_photo_url) {
-                $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
-                    return mb_substr($segment, 0, 1);
-                })->join(' '));
-
-                $photoApi = 'https://ui-avatars.com/api/?name='.urlencode($name);
-            }
-
             $responseData[] = [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $userRole,
-                'profile_photo_url' => $user->profile_photo_url ?? $photoApi
+                'profile_photo_url' => $user->profile_photo_url
             ];
         }
 
@@ -212,7 +207,6 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        //dd($request->profile_photo_url);
         // Validated
         $validateUser = Validator::make($request->all(),
         [
@@ -220,7 +214,6 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'required',
             'role' => 'exists:roles,name',
-            'profile_photo_url' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validateUser->fails()) {
@@ -231,12 +224,22 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($request->hasFile('profile_photo_url')) {
-            $file = $request->file('profile_photo_url');
+        if (!empty(request()->input('profile_photo_url'))) {
+            $base64Image = request()->input('profile_photo_url');
 
-            $routeImage = Storage::disk('s3')->put('users', $file);
+            if (!$tmpFileObject = $this->validateBase64($base64Image, ['png', 'jpg', 'jpeg', 'gif'])) {
+                return response()->json([
+                    'error' => 'Formato de imagen invalido.'
+                ], 415);
+            }
 
-            $urlImage = Storage::disk('s3')->url($routeImage);
+            $storedFilePath = $this->storeFile($tmpFileObject);
+
+            if(!$storedFilePath) {
+                return response()->json([
+                    'error' => 'Algo salió mal, el archivo no ha sido guardado.'
+                ], 500);
+            }
 
             if ($user->profile_photo_url) {
                 $path = parse_url($user->profile_photo_url);
@@ -244,6 +247,8 @@ class UserController extends Controller
 
                 Storage::disk('s3')->delete('users/' . $filename);
             }
+
+            $urlImage = url(Storage::url($storedFilePath));
         }
 
         $user->fill([
@@ -277,5 +282,108 @@ class UserController extends Controller
             'status' => false,
             'message' => "Usuario $user->name borrado correctamente"
         ], 200);
+    }
+
+    /**
+     * Validate base64 content.
+     *
+     * @see https://stackoverflow.com/a/52914093
+     */
+    private function validateBase64(string $base64data, array $allowedMimeTypes)
+    {
+        // strip out data URI scheme information (see RFC 2397)
+        if (str_contains($base64data, ';base64')) {
+            list(, $base64data) = explode(';', $base64data);
+            list(, $base64data) = explode(',', $base64data);
+        }
+
+        // strict mode filters for non-base64 alphabet characters
+        if (base64_decode($base64data, true) === false) {
+            return false;
+        }
+
+        // decoding and then re-encoding should not change the data
+        if (base64_encode(base64_decode($base64data)) !== $base64data) {
+            return false;
+        }
+
+        $fileBinaryData = base64_decode($base64data);
+
+        // temporarily store the decoded data on the filesystem to be able to use it later on
+        $tmpFileName = tempnam(sys_get_temp_dir(), 'medialibrary');
+        file_put_contents($tmpFileName, $fileBinaryData);
+
+        $tmpFileObject = new File($tmpFileName);
+
+        // guard against invalid mime types
+        $allowedMimeTypes = Arr::flatten($allowedMimeTypes);
+
+        // if there are no allowed mime types, then any type should be ok
+        if (empty($allowedMimeTypes)) {
+            return $tmpFileObject;
+        }
+
+        // Check the mime types
+        $validation = Validator::make(
+            ['file' => $tmpFileObject],
+            ['file' => 'mimes:' . implode(',', $allowedMimeTypes)]
+        );
+
+        if($validation->fails()) {
+            return false;
+        }
+
+        return $tmpFileObject;
+    }
+
+    /**
+     * Store the temporary file object
+     */
+    private function storeFile(File $tmpFileObject)
+    {
+        $tmpFileObjectPathName = $tmpFileObject->getPathname();
+
+        $file = new UploadedFile(
+            $tmpFileObjectPathName,
+            $tmpFileObject->getFilename(),
+            $tmpFileObject->getMimeType(),
+            0,
+            true
+        );
+
+        $storedFile = $file->store('users', ['disk' => 's3']);
+
+        unlink($tmpFileObjectPathName); // delete temp file
+
+        return $storedFile;
+    }
+
+    public function testBase64()
+    {
+        if (request()->isJson() && !empty(request()->input('image'))) {
+            $base64Image = request()->input('image');
+
+            if (!$tmpFileObject = $this->validateBase64($base64Image, ['png', 'jpg', 'jpeg', 'gif'])) {
+                return response()->json([
+                    'error' => 'Formato de imagen invalido.'
+                ], 415);
+            }
+
+            $storedFilePath = $this->storeFile($tmpFileObject);
+
+            if(!$storedFilePath) {
+                return response()->json([
+                    'error' => 'Algo salió mal, el archivo no ha sido guardado.'
+                ], 500);
+            }
+
+            return response()->json([
+                'image_url' => url(Storage::url($storedFilePath)),
+            ]);
+        }
+
+        return response()->json([
+            'error' => 'Petición inválida.'
+        ], 400);
     }
 }
