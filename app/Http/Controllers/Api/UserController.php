@@ -159,7 +159,8 @@ class UserController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Usuario logueado correctamente',
-                'token' => $user->createToken("API TOKEN")->plainTextToken
+                'token' => $user->createToken("API TOKEN")->plainTextToken,
+                'user' => $user
             ], 200);
 
         } catch (Throwable $th) {
@@ -249,6 +250,21 @@ class UserController extends Controller
             }
 
             $urlImage = url(Storage::url($storedFilePath));
+
+            $user->fill([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+                'profile_photo_url' => $urlImage,
+            ]);
+
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Usuario $user->name editado correctamente"
+            ], 200);
         }
 
         $user->fill([
@@ -256,7 +272,6 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            'profile_photo_url' => $urlImage ?? null,
         ]);
 
         $user->save();
