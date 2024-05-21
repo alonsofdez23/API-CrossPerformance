@@ -52,6 +52,13 @@ class UserController extends Controller
         return response()->json($users, 200);
     }
 
+    public function usersAdminCoach()
+    {
+        $users = User::role(['admin', 'coach'])->get();
+
+        return response()->json($users, 200);
+    }
+
     public function show(User $user)
     {
         $responseData = [];

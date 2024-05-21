@@ -44,6 +44,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::group(['middleware' => ['role:admin|coach']], function() {
         // Users
         Route::get('/users/role/{role}', [UserController::class, 'usersForRole']);
+        Route::get('/users/roles/admincoach', [UserController::class, 'usersAdminCoach']);
         Route::delete('/user/{user}', [UserController::class, 'destroy']);
         // Roles
         Route::post('/user/{user}/role/{role}', [RoleController::class, 'assignRole']);
