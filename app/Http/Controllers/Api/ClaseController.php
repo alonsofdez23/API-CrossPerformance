@@ -70,12 +70,14 @@ class ClaseController extends Controller
      */
     public function store(Request $request)
     {
+        //dd($request->fecha_hora);
+
         // Validated
         $validateClase = Validator::make($request->all(),
         [
             'monitor_id' => 'required|exists:users,id',
             'entreno_id' => 'nullable|exists:entrenos,id',
-            'fecha_hora' => 'required|date|date_format:Y-m-d H:i:s',
+            'fecha_hora' => 'required|date',
             'vacantes' => 'required|integer|between:1,99'
         ]);
 
@@ -100,7 +102,16 @@ class ClaseController extends Controller
      */
     public function show(Clase $clase)
     {
-        return response()->json($clase->only(['monitor_id', 'entreno_id', 'fecha_hora', 'vacantes']), 200);
+        $responseData = [
+            'id' => $clase->id,
+            'monitor_id' => $clase->monitor_id,
+            'entreno_id' => $clase->entreno_id,
+            'fecha_hora' => $clase->fecha_hora,
+            'vacantes' => $clase->vacantes,
+        ];
+
+        //dd($clase->fecha_hora);
+        return response()->json($responseData, 200);
     }
 
     /**
