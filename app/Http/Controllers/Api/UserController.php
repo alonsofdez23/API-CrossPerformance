@@ -262,11 +262,12 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => $request->role,
                 'profile_photo_url' => $urlImage,
             ]);
 
             $user->save();
+
+            $user->syncRoles($request->role);
 
             return response()->json([
                 'status' => true,
@@ -278,10 +279,11 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
         ]);
 
         $user->save();
+
+        $user->syncRoles($request->role);
 
         return response()->json([
             'status' => true,

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ClaseController;
 use App\Http\Controllers\Api\EntrenoController;
+use App\Http\Controllers\Api\PagoController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -25,6 +26,9 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::put('/users/{user}', [UserController::class, 'update']);
+
+    // Pagos
+    Route::post('/pagos/metodopago', [PagoController::class, 'metodoPago']);
 
     // Entrenos
     Route::get('/entrenos', [EntrenoController::class, 'index']);
