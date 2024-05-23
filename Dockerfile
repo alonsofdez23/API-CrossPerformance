@@ -15,6 +15,7 @@ RUN apt-get update -y \
     zip \
     && docker-php-ext-install pdo_mysql \
     && docker-php-ext-install zip \
+    && docker-php-ext-install bcmath \
     pdo \
     mbstring \
     && apt-get clean
