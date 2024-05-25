@@ -161,7 +161,7 @@ class ClaseController extends Controller
         if ($clase->atletas->isNotEmpty()) {
             return response()->json([
                 'status' => false,
-                'message' => "Clase con atletas apuntados. No puede borrarse",
+                'message' => "Clase con atletas inscritos. No puede borrarse.",
                 'atletas' => $clase->atletas
             ], 401);
         }

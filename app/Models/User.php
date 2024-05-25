@@ -53,8 +53,8 @@ class User extends Authenticatable
     {
         parent::boot();
 
-        static::retrieved(function($user) {
-            if (!$user->profile_photo_url) {
+        static::saving(function($user) {
+            if (!$user->profile_photo_url || $user->isDirty('name')) {
                 $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
                     return mb_substr($segment, 0, 1);
                 })->join(' '));
