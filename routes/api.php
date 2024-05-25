@@ -26,6 +26,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::patch('users/avatar/{user}', [UserController::class, 'updateAvatar']);
 
     // Pagos
     Route::post('/pagos/metodopago', [PagoController::class, 'metodoPago']);

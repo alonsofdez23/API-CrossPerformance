@@ -267,11 +267,13 @@ class UserController extends Controller
 
             $user->save();
 
-            $user->syncRoles($request->role);
+            if ($request->role) {
+                $user->syncRoles($request->role);
+            }
 
             return response()->json([
                 'status' => true,
-                'message' => "Usuario $user->name editado correctamente"
+                'message' => "Usuario $user->name editado correctamente",
             ], 200);
         }
 
@@ -283,12 +285,56 @@ class UserController extends Controller
 
         $user->save();
 
-        $user->syncRoles($request->role);
+        if ($request->role) {
+            $user->syncRoles($request->role);
+        }
 
         return response()->json([
             'status' => true,
             'message' => "Usuario $user->name editado correctamente"
         ], 200);
+    }
+
+    public function updateAvatar(Request $request, User $user)
+    {
+        if (!empty(request()->input('profile_photo_url'))) {
+            $base64Image = request()->input('profile_photo_url');
+
+            if (!$tmpFileObject = $this->validateBase64($base64Image, ['png', 'jpg', 'jpeg', 'gif'])) {
+                return response()->json([
+                    'error' => 'Formato de imagen invalido.'
+                ], 415);
+            }
+
+            $storedFilePath = $this->storeFile($tmpFileObject);
+
+            if(!$storedFilePath) {
+                return response()->json([
+                    'error' => 'Algo salió mal, el archivo no ha sido guardado.'
+                ], 500);
+            }
+
+            if ($user->profile_photo_url) {
+                $path = parse_url($user->profile_photo_url);
+                $filename = basename($path['path']);
+
+                Storage::disk('s3')->delete('users/' . $filename);
+            }
+
+            $urlImage = url(Storage::url($storedFilePath));
+
+            $user->profile_photo_url = $urlImage;
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Usuario $user->name editado correctamente",
+            ], 200);
+        }
+
+        return response()->json([
+            'error' => 'Solicitud no esperada o mal formada',
+        ], 400);
     }
 
     public function destroy(User $user)
