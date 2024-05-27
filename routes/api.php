@@ -64,6 +64,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
         Route::post('/clases', [ClaseController::class, 'store']);
         Route::put('/clases/{clase}', [ClaseController::class, 'update']);
         Route::delete('/clases/{clase}', [ClaseController::class, 'destroy']);
+        Route::delete('/clasesmail/{clase}', [ClaseController::class, 'destroyMail']);
 
         // Entrenos en clases
         Route::post('clases/add/{clase}', [ClaseController::class, 'addEntrenoUpdate']);

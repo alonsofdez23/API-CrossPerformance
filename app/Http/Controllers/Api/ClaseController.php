@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Clase;
 use App\Models\Entreno;
 use App\Models\User;
+use App\Notifications\DeleteClase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -164,6 +165,37 @@ class ClaseController extends Controller
                 'message' => "Clase con atletas inscritos. No puede borrarse.",
                 'atletas' => $clase->atletas
             ], 401);
+        }
+
+        $clase->delete();
+
+        return response()->json([
+            'status' => false,
+            'message' => "Clase borrada correctamente"
+        ], 200);
+    }
+
+    public function destroyMail(Clase $clase)
+    {
+        if ($clase->atletas->isNotEmpty()) {
+            $clase->atletas()->detach();
+            $clase->delete();
+
+            foreach($clase->atletas as $atleta) {
+                $atleta->notify(new DeleteClase($clase->fecha_hora, $atleta));
+            }
+
+            return response()->json([
+                'status' => false,
+                'message' => "Clase con atletas inscritos eliminada, se les notifico por email",
+                'atletas' => $clase->atletas
+            ], 200);
+
+            // return response()->json([
+            //     'status' => false,
+            //     'message' => "Clase con atletas inscritos. No puede borrarse.",
+            //     'atletas' => $clase->atletas
+            // ], 401);
         }
 
         $clase->delete();
