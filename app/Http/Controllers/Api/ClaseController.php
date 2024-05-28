@@ -29,8 +29,6 @@ class ClaseController extends Controller
         //     ->sortBy('fecha_hora');
 
         return response()->json($clases, 200);
-
-
     }
 
     public function indexDate($date)
@@ -202,7 +200,7 @@ class ClaseController extends Controller
 
         return response()->json([
             'status' => false,
-            'message' => "Clase borrada correctamente"
+            'message' => "Clase eliminada correctamente"
         ], 200);
     }
 

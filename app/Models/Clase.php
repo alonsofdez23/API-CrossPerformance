@@ -31,7 +31,7 @@ class Clase extends Model
      */
     public function atletas()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class)->withTimestamps();
     }
 
     /**

@@ -87,7 +87,7 @@ class User extends Authenticatable
      */
     public function clases()
     {
-        return $this->belongsToMany(Clase::class);
+        return $this->belongsToMany(Clase::class)->withTimestamps();
     }
 
     /**
