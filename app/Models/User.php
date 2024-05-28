@@ -49,22 +49,36 @@ class User extends Authenticatable
         ];
     }
 
-    protected static function boot()
+    // Accesor profile_photo_url
+    public function getProfilePhotoUrlAttribute($value)
     {
-        parent::boot();
+        if (!$value || $this->isDirty('name')) {
+            $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
+                return mb_substr($segment, 0, 1);
+            })->join(' '));
 
-        static::saving(function($user) {
-            if (!$user->profile_photo_url || $user->isDirty('name')) {
-                $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
-                    return mb_substr($segment, 0, 1);
-                })->join(' '));
+            return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&size=512';
+        }
 
-                $user->profile_photo_url = 'https://ui-avatars.com/api/?name='.urlencode($name).'&size=512';
-            } else {
-                $user->profile_photo_url;
-            }
-        });
+        return $value;
     }
+
+    // protected static function boot()
+    // {
+    //     parent::boot();
+
+    //     static::saving(function($user) {
+    //         if (!$user->profile_photo_url || $user->isDirty('name')) {
+    //             $name = trim(collect(explode(' ', $user->name))->map(function ($segment) {
+    //                 return mb_substr($segment, 0, 1);
+    //             })->join(' '));
+
+    //             $user->profile_photo_url = 'https://ui-avatars.com/api/?name='.urlencode($name).'&size=512';
+    //         } else {
+    //             $user->profile_photo_url;
+    //         }
+    //     });
+    // }
 
     /**
      * The clases that belong to the User
