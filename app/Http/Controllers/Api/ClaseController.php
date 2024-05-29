@@ -176,27 +176,30 @@ class ClaseController extends Controller
     public function destroyMail(Clase $clase)
     {
         if ($clase->atletas->isNotEmpty()) {
-            $clase->atletas()->detach();
-            $clase->delete();
+            try {
+                // Envío notifiaciones por email
+                foreach($clase->atletas as $atleta) {
+                    $atleta->notify(new DeleteClase($clase->fecha_hora, $atleta));
+                }
 
-            foreach($clase->atletas as $atleta) {
-                $atleta->notify(new DeleteClase($clase->fecha_hora, $atleta));
+                $clase->atletas()->detach();
+                $clase->delete();
+
+                return response()->json([
+                    'status' => false,
+                    'message' => "Clase con atletas inscritos eliminada, se les notifico por email",
+                    'atletas' => $clase->atletas
+                ], 200);
+            } catch (\Exception $e) {
+                // Aunque ocurra un error, asegúrate de eliminar la clase.
+                //$clase->delete();
+
+                return response()->json([
+                    'status' => false,
+                    'message' => "Ocurrió un error al enviar las notificaciones por email"
+                ], 500);
             }
-
-            return response()->json([
-                'status' => false,
-                'message' => "Clase con atletas inscritos eliminada, se les notifico por email",
-                'atletas' => $clase->atletas
-            ], 200);
-
-            // return response()->json([
-            //     'status' => false,
-            //     'message' => "Clase con atletas inscritos. No puede borrarse.",
-            //     'atletas' => $clase->atletas
-            // ], 401);
         }
-
-        $clase->delete();
 
         return response()->json([
             'status' => false,
