@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\ClaseController;
 use App\Http\Controllers\Api\EntrenoController;
-use App\Http\Controllers\Api\PagoController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -29,7 +29,9 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::patch('users/avatar/{user}', [UserController::class, 'updateAvatar']);
 
     // Pagos
-    Route::post('/pagos/metodopago', [PagoController::class, 'metodoPago']);
+    Route::post('/create-customer', [PaymentController::class, 'createCustomer']);
+    Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
+    Route::post('/pago-unico', [PaymentController::class, 'pagoUnico']);
 
     // Entrenos
     Route::get('/entrenos', [EntrenoController::class, 'index']);
