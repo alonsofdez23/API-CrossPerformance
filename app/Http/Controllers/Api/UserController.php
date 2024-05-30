@@ -210,6 +210,7 @@ class UserController extends Controller
             'email' => $user->email,
             'role' => $user->roles->first()->name ?? null,
             'profile_photo_url' => $user->profile_photo_url,
+            'suscripcion' => $user->suscripcion,
         ]);
     }
 
