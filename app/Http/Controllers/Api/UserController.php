@@ -296,6 +296,85 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function updateAdmin(Request $request, User $user)
+    {
+        // Validated
+        $validateUser = Validator::make($request->all(),
+        [
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'role' => 'exists:roles,name',
+        ]);
+
+        if ($validateUser->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error de validación',
+                'errors' => $validateUser->errors()
+            ], 401);
+        }
+
+        if (!empty(request()->input('profile_photo_url'))) {
+            $base64Image = request()->input('profile_photo_url');
+
+            if (!$tmpFileObject = $this->validateBase64($base64Image, ['png', 'jpg', 'jpeg', 'gif'])) {
+                return response()->json([
+                    'error' => 'Formato de imagen invalido.'
+                ], 415);
+            }
+
+            $storedFilePath = $this->storeFile($tmpFileObject);
+
+            if(!$storedFilePath) {
+                return response()->json([
+                    'error' => 'Algo salió mal, el archivo no ha sido guardado.'
+                ], 500);
+            }
+
+            if ($user->profile_photo_url) {
+                $path = parse_url($user->profile_photo_url);
+                $filename = basename($path['path']);
+
+                Storage::disk('s3')->delete('users/' . $filename);
+            }
+
+            $urlImage = url(Storage::url($storedFilePath));
+
+            $user->fill([
+                'name' => $request->name,
+                'email' => $request->email,
+                'profile_photo_url' => $urlImage,
+            ]);
+
+            $user->save();
+
+            if ($request->role) {
+                $user->syncRoles($request->role);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => "Usuario $user->name editado correctamente",
+            ], 200);
+        }
+
+        $user->fill([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        $user->save();
+
+        if ($request->role) {
+            $user->syncRoles($request->role);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "Usuario $user->name editado correctamente"
+        ], 200);
+    }
+
     public function updateAvatar(Request $request, User $user)
     {
         if (!empty(request()->input('profile_photo_url'))) {
