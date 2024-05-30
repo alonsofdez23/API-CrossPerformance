@@ -199,12 +199,24 @@ class ClaseController extends Controller
                     'message' => "Ocurrió un error al enviar las notificaciones por email"
                 ], 500);
             }
-        }
+        } else if ($clase->atletas->isEmpty()) {
+            try {
+                $clase->delete();
 
-        return response()->json([
-            'status' => false,
-            'message' => "Clase eliminada correctamente"
-        ], 200);
+                return response()->json([
+                    'status' => false,
+                    'message' => "Clase eliminada correctamente",
+                ], 200);
+            } catch (\Exception $e) {
+                // Aunque ocurra un error, asegúrate de eliminar la clase.
+                //$clase->delete();
+
+                return response()->json([
+                    'status' => false,
+                    'message' => "Ocurrió un error al enviar las notificaciones por email"
+                ], 500);
+            }
+        }
     }
 
     // Atletas
