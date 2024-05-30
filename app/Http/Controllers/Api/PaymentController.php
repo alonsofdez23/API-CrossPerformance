@@ -150,13 +150,20 @@ class PaymentController extends Controller
             $user->createAsStripeCustomer();
         }
 
-        if ($user->suscripcion) {
-            $user->suscripcion = Carbon::create($user->suscripcion)->addMonths($request->suscripcion);
-            $user->save();
-        } else {
-            $user->suscripcion = Carbon::now()->addMonths($request->suscripcion);
-            $user->save();
-        }
+        $fechaSuscripcion = Carbon::create($user->suscripcion);
+        $now = Carbon::now();
+
+        $user->suscripcion = $now->addMonths($request->suscripcion);
+        $user->save();
+
+        // Opciones si puedes añadir tiempo a la suscripción
+        // if ($user->suscripcion) {
+        //     $user->suscripcion = Carbon::create($user->suscripcion)->addMonths($request->suscripcion);
+        //     $user->save();
+        // } else {
+        //     $user->suscripcion = Carbon::now()->addMonths($request->suscripcion);
+        //     $user->save();
+        // }
 
         // Construir el mensaje condicional
         $mesTexto = $request->suscripcion == 1 ? 'mes' : 'meses';
