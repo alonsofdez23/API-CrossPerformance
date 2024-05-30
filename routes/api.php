@@ -33,6 +33,20 @@ Route::group(['middleware' => ["auth:sanctum"]], function () {
     Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
     Route::post('/pago-unico', [PaymentController::class, 'pagoUnico']);
 
+    // Suscripciones
+    Route::post('/pagos/suscripcion/create', [PaymentController::class, 'subscribe']);
+    Route::post('/pagos/suscripcion/cancel', [PaymentController::class, 'cancel']);
+    Route::post('/pagos/suscripcion/change', [PaymentController::class, 'changeSubscribe']);
+    Route::post('/pagos/suscripcion/resume', [PaymentController::class, 'resumeSubscribe']);
+
+    // Suscripciones custom
+    Route::post('/pagos/suscripcion/custom', [PaymentController::class, 'customSubscribe']);
+
+    // Route::post(
+    //     '/stripe/webhook',
+    //     '\Laravel\Cashier\Http\Controllers\WebhookController@handleWebhook'
+    // );
+
     // Entrenos
     Route::get('/entrenos', [EntrenoController::class, 'index']);
     Route::get('/entrenos/{entreno}', [EntrenoController::class, 'show']);

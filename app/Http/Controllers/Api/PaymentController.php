@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Stripe\StripeClient;
@@ -87,5 +88,83 @@ class PaymentController extends Controller
             'customerEphemeralKeySecret' => $ephemeralKey->secret,
             'paymentIntentClientSecret' => $paymentIntent->client_secret,
         ]);
+    }
+
+    public function subscribe(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasStripeId()) {
+            $user->createAsStripeCustomer();
+        }
+
+        $user->newSubscription('Full Box', $request->price)->create($request->paymentMethod);
+
+        return response()->json(['message' => 'Suscripción creada']);
+    }
+
+    public function cancel()
+    {
+        $user = Auth::user();
+
+        if (!$user->hasStripeId()) {
+            $user->createAsStripeCustomer();
+        }
+
+        $user->subscription('Full Box')->cancel();
+
+        return response()->json(['message' => 'Suscripción cancelada']);
+    }
+
+    public function changeSubscribe(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasStripeId()) {
+            $user->createAsStripeCustomer();
+        }
+
+        $user->subscription('Full Box')->swap($request->price);
+
+        return response()->json(['message' => 'Suscripción cambiada']);
+    }
+
+    public function resumeSubscribe(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasStripeId()) {
+            $user->createAsStripeCustomer();
+        }
+
+        $user->subscription('Full Box')->resume();
+
+        return response()->json(['message' => 'Suscripción reactivada']);
+    }
+
+    public function customSubscribe(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasStripeId()) {
+            $user->createAsStripeCustomer();
+        }
+
+        if ($user->suscripcion) {
+            $user->suscripcion = Carbon::create($user->suscripcion)->addMonths($request->suscripcion);
+            $user->save();
+        } else {
+            $user->suscripcion = Carbon::now()->addMonths($request->suscripcion);
+            $user->save();
+        }
+
+        // Construir el mensaje condicional
+        $mesTexto = $request->suscripcion == 1 ? 'mes' : 'meses';
+        $message = "Suscripción de $request->suscripcion $mesTexto activada correctamente";
+
+        return response()->json([
+            'message' => $message,
+            'user' => $user,
+        ], 200);
     }
 }
